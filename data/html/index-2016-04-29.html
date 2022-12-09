@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="eng">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+      <!-- Leaflet 0.5: https://github.com/CloudMade/Leaflet-->
+	  <link rel="stylesheet" href="../../lib/leaflet.css" />
+	  <!--[if lte IE 8]> <link rel="stylesheet" href="../../lib/leaflet.ie.css" />  <![endif]-->  
+	  <script src="../../lib/leaflet.js"></script>
+
+	  <!-- MarkerCluster https://github.com/danzel/Leaflet.markercluster -->
+	  <link rel="stylesheet" href="../../lib/MarkerCluster.css" />
+	  <link rel="stylesheet" href="../../lib/MarkerCluster.Default.css" />
+	  <!--[if lte IE 8]> <link rel="stylesheet" href="../../lib/MarkerCluster.Default.ie.css" /> <![endif]-->
+	  <script src="../../lib/leaflet.markercluster-src.js"></script>
+
+	  <!-- GeoCSV: https://github.com/joker-x/Leaflet.geoCSV -->
+	  <script src="../../leaflet.geocsv-src.js"></script>
+
+	  <!-- jQuery 1.8.3: http://jquery.com/ -->
+	  <script src="../../lib/jquery.js"></script>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+		<style>	
+			html, body, #mapa {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;	
+				font-family: Arial, sans-serif;
+				
+			}
+	
+			#cargando {
+				position:fixed;
+				top:0;
+				left:0;
+				width:100%;
+				height:100%;
+				background-color:#666;
+				color:#fff;
+				font-size:2em;
+				padding:20% 40%;
+				z-index:10;
+			}
+	
+	
+			.container{
+				height: 99%;
+				width: 100%;	
+				position: fixed;
+				top:4px;
+				left:0;
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
+				min-height: 300px;
+			
+			}
+			
+			.map{
+				height: 100%;
+				width: 95%;
+				z-index: 0;
+				opacity: 1;
+			}
+			
+			.overlay-container{
+				z-index: 1;
+				position: fixed;
+				height: fit-content;
+				width: fit-content;
+				top: 150px;
+				left:13px;
+			}
+			.overlay{
+				font-family: Arial, sans-serif;
+				opacity: .5;
+				background-color: rgb(255, 255, 255);
+				height: fit-content;
+				width: 250px;
+				border-radius: 5px;
+				border-width: 1px;
+				border-style: solid;
+				border-color: rgb(41, 41, 41);
+			}
+			
+			.title-container{
+				z-index: 1;
+				display: flex;
+				justify-content: space-evenly;
+				align-items: center;
+				position: relative;
+				background-color: transparent;
+				height: 40px;
+				width: 100%;
+				text-align: center;
+				vertical-align: middle;
+				color: black;
+				border-bottom-style: dotted;
+	
+			}
+			.nav-button{
+				background-color: white;
+				padding: 5px;
+				cursor: pointer;
+				
+			}
+			
+			.nav-button:hover{
+				background-color: #eee;
+			}
+			.left{
+				margin-left: -40px;
+				-webkit-transform: scaleX(-1);
+				transform: scaleX(-1);
+			}
+			
+			.right{
+				margin-right: -40px;
+			}
+			
+			.underline{
+				text-decoration: underline;
+			}
+	
+			
+			.title{
+				font-size: 23px;
+				margin-top: 0px;
+				font-weight: 700;
+			}
+			
+			.material-symbols-outlined {
+			  font-variation-settings:
+			  'FILL' 0,
+			  'wght' 400,
+			  'GRAD' 0,
+			  'opsz' 48;
+			  color: black;
+			}
+			.overlay-container-tools{
+				z-index: 1;
+				position: relative;
+				height: fit-content;
+				width: fit-content;
+				
+				opacity: 1;
+			}
+	
+			.tools{
+				height: 70px;
+				display: flex;
+				flex-direction: row;
+				font-size: 13px;
+				opacity:1;
+				border-style: none;
+				border-top-style: solid;
+				border-top-left-radius: 0;
+				border-top-right-radius: 0;
+			}
+	
+			.tools-container{
+				width: 50%;
+				margin-left: 10px;
+			}
+	
+			.colorpicker{
+				margin-top: 5px;
+				width: 25px;
+				height: 25px;
+			}
+			.tool-item{
+				margin-top: 10px;
+				width: 25%;
+				font-size: 11px;
+			}
+	
+			.items{
+				color: black;
+				position: relative;
+				top: 1px;
+				font-size: 17px;
+				margin-left: 10px
+			}
+			.list{
+				margin-top:-10px;
+			}
+			.little-nudge{
+				position: relative;
+				left: 6px
+			}
+		</style>
+	</head>
+	<body>
+		<div id="cargando">Loading...</div>
+		<div class = "container">
+			<div id="mapa" class = "map">
+			</div>
+			<div class="overlay-container">	
+				<div class="overlay">
+					<div class="title-container">
+						<div class="little-nudge"><a href="../../data/html/index-2016-04-28.html"><span class="material-symbols-outlined left nav-button">arrow_forward_ios</span></a></div>
+						<div class=" underline  title"><p >2016/04/29</p></div>
+						<div class=""><a href="../../data/html/index-2016-04-30.html" ><span class="material-symbols-outlined nav-button right">arrow_forward_ios</span></a></div>
+					</div>
+					<div ><p class="items">Total journeys today: 25659</p></div>
+					<div>
+						<p class="items underline">Most popular docks for starting journeys:</p>
+						<ul class="list">
+							<li>Moorfields, Moorgate, 99 journeys</li>
+							<li>Craven Street, Strand, 99 journeys</li>
+							<li>Wellington Arch, Hyde Park, 94 journeys</li>
+						</ul>
+					</div>
+					<div>
+						<p class="items underline">Most popular docks for ending journeys:</p>
+						<ul class="list">
+							<li>William IV Street, Strand, 99 journeys</li>
+							<li>Craven Street, Strand, 99 journeys</li>
+							<li>Malet Street, Bloomsbury, 96 journeys</li>
+						</ul>
+					</div>
+					<div class="overlay-container-tools">	
+						<div class="overlay tools">
+							<div class="tools-container">
+								<label for="colorpickeredges">Edge Colour: </label>
+								<input type="color" class="colorpicker " id="colorpickeredges" value="#faceff">
+								<label for = "edge-size" >Edge Size: </label>
+								<input type="number" value=".2" id="edge-size" class="tool-item">
+							</div>
+							<div class="tools-container">
+								<label for="colorpickernodes">Node Colour: </label>
+								<input type="color" class="colorpicker" id="colorpickernodes" value="#25659">
+								<label for = "node-size">Node Size: </label>
+								<input type="number" value="5" id="node-size" class="tool-item">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+<script>
+/////////SETUP//////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+mode = -1;
+filtervalue = "0"
+coordinatesURL = "https://raw.githubusercontent.com/elias-abril-f/CSV-Cycling-Data/main/coordinatesLeaflet.csv"
+edgesURL = "https://raw.githubusercontent.com/elias-abril-f/CSV-Cycling-Data/main/2016-04-29.csv"
+
+var edgeColour = document.getElementById("colorpickeredges").value;
+var nodeColour = document.getElementById("colorpickernodes").value;
+var edgeSize = document.getElementById("edge-size").value;
+var nodeSize = document.getElementById("node-size").value;
+
+////MAP//LAYERS////////////////////
+var mapa = L.map('mapa', {attributionControl:false}).setView([51.5, -0.14], 13);
+var stadia = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+	minZoom: 3,
+	maxZoom: 19,
+	attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+}).addTo(mapa);
+var opm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	minZoom: 3,
+	maxZoom: 19,
+	})
+var stadiaLight = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+	minZoom: 3,
+maxZoom: 19,
+attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+});
+var opencyclemap = L.tileLayer('https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png', {
+	minZoom: 3,
+	maxZoom: 19,
+	attribution: '<a href="https://github.com/cyclosm/cyclosm-cartocss-style/releases" title="CyclOSM - Open Bicycle render">CyclOSM</a> | Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+});
+var baseMaps = {
+	"StadiaLight": stadiaLight,
+	"OpenStreet": opm,
+	"CycleMap": opencyclemap,
+	"StadiaMaps": stadia,
+};
+var layerControl = L.control.layers(baseMaps).addTo(mapa);
+////END//OF//MAP//LAYERS///////////
+
+////OVERLAY//LAYERS////////////////
+edges = createEdges();
+add(edgesURL, edges);
+nodes = createNodes();
+add(coordinatesURL, nodes);
+////END//OF//OVERLAY//LAYERS///////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////END////OF////SETUP////////////////////////////////////////////////////////////////////////////////////////
+
+function createEdges(){
+	var edges = L.geoCsv(null, {
+		onEachFeature: function (feature, layer) {
+			layer.on("click", function(e){		
+				//POP UP PARAMETERS
+				//alert(layer.feature.geometry.coordinates[1])
+				var popup = L.popup();
+				popup
+					.setLatLng(e.latlng)
+					.setContent(edgeColour)
+					//feature.properties["popup"]
+					//.setContent(layer.feature.geometry.coordinates[0])
+					.openOn(mapa);
+				})
+			if (layer instanceof L.Polyline) {
+				layer.setStyle({
+					//HYPERPARAMETERS FOR EDGES STYLE
+					color: edgeColour, 
+					weight: edgeSize,
+					opacity: 0.75,
+					zindex:400,});}},
+	//HYPERPARAMETERS FOR GEOCSV
+		activeWKT: true,
+		WKTTitle: 'Feature',
+		titles: ['Feature', 'Popup'],
+		firstLineTitles: false,
+		fieldSeparator: ',',
+		lineSeparator: '\n',
+		debug: true,});
+		return edges}
+
+function createEdgesFilterIncoming(filtervalue){
+	var edges = L.geoCsv(null, {
+		filter: function(feature, layer){return (feature.geometry.coordinates[1] == filtervalue)},
+		onEachFeature: function (feature, layer) {
+			layer.on("click", function(e){
+				//alert(feature.properties["popup"])
+				//POP UP PARAMETERS
+				var popup = L.popup();
+				popup
+					.setLatLng(e.latlng)
+					.setContent(feature.properties["popup"])
+					.openOn(mapa);})
+			if (layer instanceof L.Polyline) {
+				layer.setStyle({
+					//HYPERPARAMETERS FOR EDGES STYLE
+					color: "#2c03fc", 
+					weight: 10,
+					opacity: 1,
+					zindex:400,});}},
+	//HYPERPARAMETERS FOR GEOCSV
+		activeWKT: true,
+		WKTTitle: 'Feature',
+		titles: ['Feature', 'Popup'],
+		firstLineTitles: false,
+		fieldSeparator: ',',
+		lineSeparator: '\n',
+		debug: true,});
+		return edges
+}
+
+function createEdgesFilterOutgoing(filtervalue){
+	var edges = L.geoCsv(null, {
+		filter: function(feature, layer){return (feature.geometry.coordinates[0] == filtervalue) },
+		onEachFeature: function (feature, layer) {
+			layer.on("click", function(e){
+				//alert(feature.properties["popup"])
+				//POP UP PARAMETERS
+				var popup = L.popup();
+				popup
+					.setLatLng(e.latlng)
+					.setContent(feature.properties["popup"])
+					.openOn(mapa);})
+			if (layer instanceof L.Polyline) {
+				layer.setStyle({
+					//HYPERPARAMETERS FOR EDGES STYLE
+					color: "#faceff", 
+					weight: 2,
+					opacity: 0.75,
+					zindex:400,});}},
+	//HYPERPARAMETERS FOR GEOCSV
+		activeWKT: true,
+		WKTTitle: 'Feature',
+		titles: ['Feature', 'Popup'],
+		firstLineTitles: false,
+		fieldSeparator: ',',
+		lineSeparator: '\n',
+		debug: true,});
+		return edges
+}
+	
+function createNodes(){
+	var nodes = L.geoCsv(null, {
+		onEachFeature: function(feature,layer){
+			layer.on("click",function(e){
+				mode = mode * -1
+				filtervalue = layer.feature.geometry.coordinates[0].toString()+","+layer.feature.geometry.coordinates[1].toString()
+
+				if (typeof edges != "undefined"){
+					mapa.removeLayer(edges)}
+				if (typeof edges2 != "undefined"){
+					mapa.removeLayer(edges2)}
+				if (mode > 0){
+					edges = createEdgesFilterIncoming(filtervalue);
+					edges2 = createEdgesFilterOutgoing(filtervalue);
+					add(edgesURL, edges);
+					add(edgesURL, edges2);}
+				else{
+					edges = createEdges();
+					add(edgesURL, edges);}
+				}),
+
+			layer.on("mouseout", function(e){
+				this.closePopup()}),
+
+			layer.on("mouseover", function(e){
+				this.bindPopup(feature.properties["popup"])
+				this.openPopup()})
+		},
+		pointToLayer: function (feature, latlng) {
+			return L.circleMarker(latlng, {
+				radius: nodeSize,
+				fillColor: nodeColour,
+				color: "#ffffff",
+				weight: 1,
+				opacity: 0.5,
+				fillOpacity: 0.8,
+				zindex:450
+			});
+		},
+		titles: ['Feature', 'Popup'],
+		firstLineTitles: false,
+		fieldSeparator: ',',
+		lineSeparator: '\n',
+		activeWKT: true,
+		WKTTitle: 'Feature',
+		debug: true,
+		});
+		return nodes
+	}
+
+function add(urltouse, layer){
+$.ajax ({
+	type:'GET',
+	dataType:'text',
+	url:urltouse,
+   error: function() {
+     alert('The data could not be loaded');
+   },
+	success: function(csv) {
+      //var cluster = new L.MarkerClusterGroup();
+		layer.addData(csv);
+		//cluster.addLayer(nodes);
+		//if cluster is wanted below line
+		//mapa.addLyaer(cluster);
+		mapa.addLayer(layer);
+		mapa.removeLayer(nodes)
+		mapa.addLayer(nodes)
+		//mapa.fitBounds(cluster.getBounds());
+	},
+   complete: function() {
+      $('#cargando').delay(500).fadeOut('slow');
+   }
+});
+}
+
+</script>
+	</body>
+</html>
